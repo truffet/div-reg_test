@@ -18,7 +18,7 @@ def create_connection():
 def create_table(conn, table_name):
     try:
         c = conn.cursor()
-        c.execute(f"CREATE TABLE IF NOT EXISTS {table_name} (data text)")
+        c.execute(f"CREATE TABLE IF NOT EXISTS {table_name} (data text, timestamp text, UNIQUE(timestamp))")
         print(f"Table {table_name} created successfully")
     except Error as e:
         print(e)
@@ -27,7 +27,9 @@ def create_table(conn, table_name):
 def insert_data(conn, table_name, data):
     try:
         c = conn.cursor()
-        c.execute(f"INSERT INTO {table_name}(data) VALUES(?)", (json.dumps(data),))
+        for entry in data:
+            timestamp = entry['timestamp']
+            c.execute(f"INSERT OR IGNORE INTO {table_name}(data, timestamp) VALUES(?, ?)", (json.dumps(data), timestamp))
         conn.commit()
         print("Data inserted successfully")
     except Error as e:
@@ -76,7 +78,7 @@ def main():
                 if data is not None and len(data) > 0:
                     insert_data(conn, table_name, data)
                     start_time = data[-1]['timestamp']
-                    time.sleep(1)  # delay to respect the BitMEX API rate limit
+                    time.sleep(2)  # delay to respect the BitMEX API rate limit
                 else:
                     break
 
