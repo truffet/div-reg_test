@@ -54,7 +54,7 @@ Please read CONTRIBUTING.md for details on our code of conduct, and the process 
 
 ## Authors
 
-- Your Name
+- Thomas Ruffet
 
 See also the list of contributors who participated in this project.
 
