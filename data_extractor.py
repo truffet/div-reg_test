@@ -34,10 +34,18 @@ def insert_data(conn, table_name, data):
         print(e)
 
 # API request with error handling
-def get_bucketed_trades(binSize):
-    url = f"https://www.bitmex.com/api/v1/trade/bucketed?binSize={binSize}&partial=false&symbol=XBTUSD&count=500&reverse=false"
+def get_bucketed_trades(binSize, start_time=None):
+    url = "https://www.bitmex.com/api/v1/trade/bucketed"
+    params = {
+        "binSize": binSize,
+        "partial": "false",
+        "symbol": "XBTUSD",
+        "count": 1000,
+        "reverse": "false",
+        "startTime": start_time,
+    }
     try:
-        response = requests.get(url)
+        response = requests.get(url, params=params)
         response.raise_for_status()
     except requests.exceptions.RequestException as err:
         print ("Request error:",err)
@@ -53,6 +61,7 @@ def get_bucketed_trades(binSize):
         return None
     return response.json()
 
+
 def main():
     conn = create_connection()
     if conn is not None:
@@ -60,10 +69,16 @@ def main():
         for bin_size in bin_sizes:
             table_name = f"XBTUSD_{bin_size}"
             create_table(conn, table_name)
-            data = get_bucketed_trades(bin_size)
-            if data is not None:
-                insert_data(conn, table_name, data)
-            time.sleep(1)  # delay to respect the BitMEX API rate limit
+            
+            start_time = None
+            while True:
+                data = get_bucketed_trades(bin_size, start_time)
+                if data is not None and len(data) > 0:
+                    insert_data(conn, table_name, data)
+                    start_time = data[-1]['timestamp']
+                    time.sleep(1)  # delay to respect the BitMEX API rate limit
+                else:
+                    break
 
 if __name__ == '__main__':
     main()
