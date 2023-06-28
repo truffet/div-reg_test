@@ -19,7 +19,7 @@ def create_table(conn, table_name):
     try:
         c = conn.cursor()
         c.execute(f"CREATE TABLE IF NOT EXISTS {table_name} (data text, timestamp text, UNIQUE(timestamp))")
-        print(f"Table {table_name} created successfully")
+        print(f"Table {table_name} loaded successfully")
     except Error as e:
         print(e)
 
@@ -63,6 +63,15 @@ def get_bucketed_trades(binSize, start_time=None):
         return None
     return response.json()
 
+# Fetch latest timestamp
+def get_latest_timestamp(conn, table_name):
+    try:
+        c = conn.cursor()
+        c.execute(f"SELECT MAX(timestamp) FROM {table_name}")
+        return c.fetchone()[0]
+    except Error as e:
+        print(e)
+        return None
 
 def main():
     conn = create_connection()
@@ -72,7 +81,7 @@ def main():
             table_name = f"XBTUSD_{bin_size}"
             create_table(conn, table_name)
             
-            start_time = None
+            start_time = get_latest_timestamp(conn, table_name)
             while True:
                 data = get_bucketed_trades(bin_size, start_time)
                 if data is not None and len(data) > 0:

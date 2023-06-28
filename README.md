@@ -25,9 +25,7 @@ Clone this repository or download the Python script to your local machine.
 
 To run the script, navigate to the directory containing the script and use the following command in your terminal:
 
-python script_name.py
-
-Replace `script_name.py` with the actual name of the Python script.
+python data_extractor.py
 
 ## Functionality
 
@@ -48,15 +46,9 @@ The script performs the following tasks:
 - The script includes basic error handling for API requests. For a production script, consider adding more comprehensive error handling and logging.
 - This script is intended for learning purposes and is not ready for production use without further modifications and robust testing.
 
-## Contributing
-
-Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us.
-
 ## Authors
 
 - Thomas Ruffet
-
-See also the list of contributors who participated in this project.
 
 ## License
 

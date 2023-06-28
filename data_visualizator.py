@@ -14,7 +14,7 @@ def create_connection():
     return conn
 
 def get_1d_data(conn):
-    table_name = "XBTUSD_1h"
+    table_name = "XBTUSD_1m"
     c = conn.cursor()
     c.execute(f"SELECT * FROM {table_name}")
     rows = c.fetchall()
