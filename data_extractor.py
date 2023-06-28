@@ -36,7 +36,7 @@ def insert_data(conn, table_name, data):
         print(e)
 
 # API request with error handling
-def get_bucketed_trades(binSize, start_time=None):
+def get_bucketed_trades(binSize, start_time):
     url = "https://www.bitmex.com/api/v1/trade/bucketed"
     params = {
         "binSize": binSize,
@@ -64,14 +64,18 @@ def get_bucketed_trades(binSize, start_time=None):
     return response.json()
 
 # Fetch latest timestamp
-def get_latest_timestamp(conn, table_name):
+def get_latest_timestamp(conn, table_name, default_start_date):
     try:
         c = conn.cursor()
         c.execute(f"SELECT MAX(timestamp) FROM {table_name}")
-        return c.fetchone()[0]
+        result = c.fetchone()[0]
+        if result is None:
+            return default_start_date
+        else:
+            return result
     except Error as e:
         print(e)
-        return None
+        return default_start_date
 
 def main():
     conn = create_connection()
@@ -80,8 +84,8 @@ def main():
         for bin_size in bin_sizes:
             table_name = f"XBTUSD_{bin_size}"
             create_table(conn, table_name)
-            
-            start_time = get_latest_timestamp(conn, table_name)
+            default_start_date = '2023-01-01' # where you start search 
+            start_time = get_latest_timestamp(conn, table_name, default_start_date)
             while True:
                 data = get_bucketed_trades(bin_size, start_time)
                 if data is not None and len(data) > 0:
