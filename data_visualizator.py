@@ -26,7 +26,9 @@ def get_1d_data(conn):
     volumes = []
 
     while True:
-        rows = c.fetchmany(10000)  # fetch 10000 rows at a time
+        x = 100000
+        rows = c.fetchmany(x)  # fetch x rows at a time
+        print(f'successfully fetched {x} rows')
         if not rows:
             break
 
