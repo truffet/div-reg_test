@@ -3,6 +3,7 @@ import sqlite3
 from sqlite3 import Error
 import json
 import time
+from datetime import datetime
 
 # Database connection setup
 def create_connection():
@@ -36,7 +37,7 @@ def insert_data(conn, table_name, data):
         print(e)
 
 # API request with error handling
-def get_bucketed_trades(binSize, start_time):
+def get_bucketed_trades(binSize, start_time, end_time):
     url = "https://www.bitmex.com/api/v1/trade/bucketed"
     params = {
         "binSize": binSize,
@@ -45,6 +46,7 @@ def get_bucketed_trades(binSize, start_time):
         "count": 1000,
         "reverse": "false",
         "startTime": start_time,
+        "endTime": end_time
     }
     try:
         response = requests.get(url, params=params)
@@ -84,11 +86,14 @@ def main():
         for bin_size in bin_sizes:
             table_name = f"XBTUSD_{bin_size}"
             create_table(conn, table_name)
-            default_start_date = '2023-01-01' # where you start search 
+            default_start_date = '2023-01-01' # where you start search
+            default_end_date = '2023-06-28' # when you want the search to stop
             start_time = get_latest_timestamp(conn, table_name, default_start_date)
+            print(f'Start  date for data extraction: {start_time}')
+            print(f'End date for the data extraction: {default_end_date}')
             while True:
-                data = get_bucketed_trades(bin_size, start_time)
-                if data is not None and len(data) > 0:
+                data = get_bucketed_trades(bin_size, start_time, default_end_date)
+                if data and len(data) > 0:
                     insert_data(conn, table_name, data)
                     start_time = data[-1]['timestamp']
                     time.sleep(2)  # delay to respect the BitMEX API rate limit
