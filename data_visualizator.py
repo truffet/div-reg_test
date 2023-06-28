@@ -17,7 +17,6 @@ def get_1d_data(conn):
     table_name = "XBTUSD_1m"
     c = conn.cursor()
     c.execute(f"SELECT * FROM {table_name}")
-    rows = c.fetchall()
 
     timestamps = []
     opens = []
@@ -26,15 +25,20 @@ def get_1d_data(conn):
     closes = []
     volumes = []
 
-    for row in rows:
-        data = json.loads(row[0])
-        for trade in data:
-            timestamps.append(datetime.datetime.strptime(trade['timestamp'], "%Y-%m-%dT%H:%M:%S.%fZ"))
-            opens.append(trade['open'])
-            highs.append(trade['high'])
-            lows.append(trade['low'])
-            closes.append(trade['close'])
-            volumes.append(trade['volume'])
+    while True:
+        rows = c.fetchmany(10000)  # fetch 10000 rows at a time
+        if not rows:
+            break
+
+        for row in rows:
+            data = json.loads(row[0])
+            for trade in data:
+                timestamps.append(datetime.datetime.strptime(trade['timestamp'], "%Y-%m-%dT%H:%M:%S.%fZ"))
+                opens.append(trade['open'])
+                highs.append(trade['high'])
+                lows.append(trade['low'])
+                closes.append(trade['close'])
+                volumes.append(trade['volume'])
 
     return timestamps, opens, highs, lows, closes, volumes
 
