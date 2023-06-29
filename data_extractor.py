@@ -3,7 +3,8 @@ import sqlite3
 from sqlite3 import Error
 import json
 import time
-from datetime import datetime
+from dateutil.parser import parse
+
 
 # Database connection setup
 def create_connection():
@@ -30,7 +31,7 @@ def insert_data(conn, table_name, data):
         c = conn.cursor()
         for entry in data:
             timestamp = entry['timestamp']
-            c.execute(f"INSERT OR IGNORE INTO {table_name}(data, timestamp) VALUES(?, ?)", (json.dumps(data), timestamp))
+            c.execute(f"INSERT OR IGNORE INTO {table_name}(data, timestamp) VALUES(?, ?)", (json.dumps(entry), timestamp))
         conn.commit()
         print("Data inserted successfully")
     except Error as e:
@@ -82,23 +83,27 @@ def get_latest_timestamp(conn, table_name, default_start_date):
 def main():
     conn = create_connection()
     if conn is not None:
-        bin_sizes = ['1m', '5m', '1h', '1d']
+        #bin_sizes = ['1m', '5m', '1h', '1d']
+        bin_sizes = ['1d']
         for bin_size in bin_sizes:
             table_name = f"XBTUSD_{bin_size}"
             create_table(conn, table_name)
-            default_start_date = '2023-01-01' # where you start search
-            default_end_date = '2023-06-28' # when you want the search to stop
+            default_start_date = '2023-01-01T00:00:00Z' # where you start search
+            default_end_date = '2023-06-28T00:00:00Z' # when you want the search to stop
             start_time = get_latest_timestamp(conn, table_name, default_start_date)
             print(f'Start  date for data extraction: {start_time}')
             print(f'End date for the data extraction: {default_end_date}')
-            while True:
+            while parse(start_time) < parse(default_end_date):
                 data = get_bucketed_trades(bin_size, start_time, default_end_date)
                 if data and len(data) > 0:
+                    print(f'Retrieved data from {start_time} to {data[-1]["timestamp"]}')
                     insert_data(conn, table_name, data)
                     start_time = data[-1]['timestamp']
+                    print(f'Updated start_time to {start_time}')
                     time.sleep(2)  # delay to respect the BitMEX API rate limit
                 else:
                     break
+
 
 if __name__ == '__main__':
     main()
