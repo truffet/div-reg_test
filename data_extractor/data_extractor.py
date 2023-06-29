@@ -10,7 +10,7 @@ from dateutil.parser import parse
 def create_connection():
     conn = None;
     try:
-        conn = sqlite3.connect('bitmex.db')  # create a database connection to a SQLite database
+        conn = sqlite3.connect('../database/bitmex.db')  # create a database connection to a SQLite database
         print(f'successful connection with sqlite version {sqlite3.version}')
     except Error as e:
         print(e)
@@ -20,7 +20,23 @@ def create_connection():
 def create_table(conn, table_name):
     try:
         c = conn.cursor()
-        c.execute(f"CREATE TABLE IF NOT EXISTS {table_name} (data text, timestamp text, UNIQUE(timestamp))")
+        c.execute(f"""
+            CREATE TABLE IF NOT EXISTS {table_name} (
+                timestamp text UNIQUE, 
+                symbol text, 
+                open real, 
+                high real, 
+                low real, 
+                close real, 
+                trades integer, 
+                volume real, 
+                vwap real, 
+                lastSize integer, 
+                turnover integer, 
+                homeNotional real, 
+                foreignNotional real
+            )
+        """)
         print(f"Table {table_name} loaded successfully")
     except Error as e:
         print(e)
@@ -30,8 +46,38 @@ def insert_data(conn, table_name, data):
     try:
         c = conn.cursor()
         for entry in data:
-            timestamp = entry['timestamp']
-            c.execute(f"INSERT OR IGNORE INTO {table_name}(data, timestamp) VALUES(?, ?)", (json.dumps(entry), timestamp))
+            c.execute(f"""
+                INSERT OR IGNORE INTO {table_name} (
+                    timestamp, 
+                    symbol, 
+                    open, 
+                    high, 
+                    low, 
+                    close, 
+                    trades, 
+                    volume, 
+                    vwap, 
+                    lastSize, 
+                    turnover, 
+                    homeNotional, 
+                    foreignNotional
+                ) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                entry['timestamp'], 
+                entry['symbol'], 
+                entry['open'], 
+                entry['high'], 
+                entry['low'], 
+                entry['close'], 
+                entry['trades'], 
+                entry['volume'], 
+                entry['vwap'], 
+                entry['lastSize'], 
+                entry['turnover'], 
+                entry['homeNotional'], 
+                entry['foreignNotional']
+            ))
         conn.commit()
         print("Data inserted successfully")
     except Error as e:
@@ -83,8 +129,8 @@ def get_latest_timestamp(conn, table_name, default_start_date):
 def main():
     conn = create_connection()
     if conn is not None:
-        #bin_sizes = ['1m', '5m', '1h', '1d']
-        bin_sizes = ['1d']
+        bin_sizes = ['1m', '5m', '1h', '1d']
+        #bin_sizes = ['1d'] #for test purposes
         for bin_size in bin_sizes:
             table_name = f"XBTUSD_{bin_size}"
             create_table(conn, table_name)

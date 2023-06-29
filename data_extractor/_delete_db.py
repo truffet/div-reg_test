@@ -1,7 +1,7 @@
 import os
 
 # Define the path to the database
-db_path = "bitmex.db"
+db_path = "../database/bitmex.db"
 
 # Check if the database exists
 if os.path.exists(db_path):
