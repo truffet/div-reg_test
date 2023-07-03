@@ -20,7 +20,7 @@ def fetch_data(conn, table_name):
 def main():
     conn = create_connection()
     if conn is not None:
-        table_name = 'XBTUSD_1d'  # replace with your table name
+        table_name = 'XBTUSD_1h'  # replace with your table name
         df = fetch_data(conn, table_name)
         
         if df.empty:

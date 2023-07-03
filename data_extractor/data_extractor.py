@@ -130,12 +130,11 @@ def main():
     conn = create_connection()
     if conn is not None:
         bin_sizes = ['1m', '5m', '1h', '1d']
-        #bin_sizes = ['1d'] #for test purposes
         for bin_size in bin_sizes:
             table_name = f"XBTUSD_{bin_size}"
             create_table(conn, table_name)
             default_start_date = '2023-01-01T00:00:00Z' # where you start search
-            default_end_date = '2023-06-28T00:00:00Z' # when you want the search to stop
+            default_end_date = '2023-07-03T00:00:00Z' # when you want the search to stop
             start_time = get_latest_timestamp(conn, table_name, default_start_date)
             print(f'Start  date for data extraction: {start_time}')
             print(f'End date for the data extraction: {default_end_date}')

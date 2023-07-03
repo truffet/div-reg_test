@@ -24,6 +24,10 @@ def calculate_rsi(df, period=14):
     rsi = 100 - (100 / (1 + (positive_avg / negative_avg)))
     return rsi
 
+def store_rsi(conn, table_name, rsi):
+    rsi_df = pd.DataFrame(rsi, columns=['timestamp', 'RSI'])
+    rsi_df.to_sql(table_name + '_rsi', conn, if_exists='append', index=False)
+
 def main():
     conn = create_connection()
     if conn is not None:
@@ -32,20 +36,15 @@ def main():
             table_name = f'XBTUSD_{bin_size}'
             df = fetch_data(conn, table_name)
 
-            # converting the data column from string to dictionary
-            df['data'] = df['data'].apply(eval)
+            # directly use the open, high, low, and close columns
+            df['Open'] = df['open']
+            df['High'] = df['high']
+            df['Low'] = df['low']
+            df['Close'] = df['close']
 
-            # creating separate columns for open, high, low and close
-            df['Open'] = df['data'].apply(lambda x: x[0]['open'])
-            df['High'] = df['data'].apply(lambda x: x[0]['high'])
-            df['Low'] = df['data'].apply(lambda x: x[0]['low'])
-            df['Close'] = df['data'].apply(lambda x: x[0]['close'])
-
-            # calculating RSI and storing it in a new column 'RSI'
-            df['RSI'] = calculate_rsi(df)
-
-            # storing the updated dataframe back into the database
-            df.to_sql(table_name, conn, if_exists='replace')
+            # calculating RSI and storing it in a new dataframe
+            rsi = calculate_rsi(df)
+            store_rsi(conn, table_name, rsi)
 
 if __name__ == '__main__':
     main()
