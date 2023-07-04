@@ -11,30 +11,41 @@ def create_connection():
         print(e)
     return conn
 
-# Check if the table exists in the database
-def table_exists(conn, table_name):
-    cur = conn.cursor()
-    cur.execute(f"SELECT count(name) FROM sqlite_master WHERE type='table' AND name='{table_name}'")
-    if cur.fetchone()[0] == 1:
-        return True
-    else:
-        return False
-
-# Fetch OHLC data from the database
 def fetch_data(conn, table_name):
     df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
     return df
 
-# Calculate RSI values
 def calculate_rsi(df, period=14):
-    daily_returns = df['Close'].diff()
-    positive_returns = daily_returns.where(daily_returns > 0, 0)
-    negative_returns = -daily_returns.where(daily_returns < 0, 0)
-    positive_avg = positive_returns.ewm(span=period).mean()
-    negative_avg = negative_returns.ewm(span=period).mean()
-    rsi = 100 - (100 / (1 + (positive_avg / negative_avg)))
+    close_prices = df['close']
+    changes = close_prices.diff()
+    gains = changes.where(changes > 0, 0)
+    losses = -changes.where(changes < 0, 0)
+    avg_gain = gains.rolling(window=period).mean()
+    avg_loss = losses.rolling(window=period).mean()
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
     return rsi
 
-# Store RSI values in the database
 def store_rsi(conn, table_name, rsi):
-    rsi_df
+    rsi_df = pd.DataFrame({'timestamp': rsi.index, 'RSI': rsi.values})
+    rsi_df.to_sql(table_name + '_rsi', conn, if_exists='replace', index=False)
+
+def main():
+    conn = create_connection()
+    if conn is not None:
+        bin_sizes = ['1m', '5m', '1h', '1d']
+        for bin_size in bin_sizes:
+            table_name = f'XBTUSD_{bin_size}'
+            df = fetch_data(conn, table_name)
+
+            # Check if 'close' column exists and is numeric
+            if 'close' in df.columns and pd.api.types.is_numeric_dtype(df['close']):
+                # calculating RSI and storing it in a new dataframe
+                rsi = calculate_rsi(df)
+                store_rsi(conn, table_name, rsi)
+                print(f'RSI data stored for table {table_name}')
+            else:
+                print(f"'close' column issue in table {table_name}")
+
+if __name__ == '__main__':
+    main()
