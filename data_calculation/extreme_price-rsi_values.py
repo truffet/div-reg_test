@@ -15,10 +15,6 @@ def fetch_data(conn, table_name):
     df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
     return df
 
-def store_extreme_values(conn, table_name, extreme_values):
-    df = pd.DataFrame(extreme_values, columns=['RSI', 'Price'])
-    df.to_sql(table_name + '_extreme_values', conn, if_exists='replace', index=False)
-
 def find_extreme_values(df_ohlc, df_rsi):
     extreme_values = []
     i = 0
@@ -26,22 +22,33 @@ def find_extreme_values(df_ohlc, df_rsi):
         if df_rsi['RSI'].iloc[i] >= 70:
             max_rsi = df_rsi['RSI'].iloc[i]
             max_price_high = df_ohlc['high'].iloc[i]
+            timestamp = df_ohlc['timestamp'].iloc[i]
             while i < len(df_rsi) and df_rsi['RSI'].iloc[i] >= 70:
-                max_rsi = max(max_rsi, df_rsi['RSI'].iloc[i])
-                max_price_high = max(max_price_high, df_ohlc['high'].iloc[i])
+                if df_rsi['RSI'].iloc[i] > max_rsi:
+                    max_rsi = df_rsi['RSI'].iloc[i]
+                    max_price_high = df_ohlc['high'].iloc[i]
+                    timestamp = df_ohlc['timestamp'].iloc[i]
                 i += 1
-            extreme_values.append((max_rsi, max_price_high))
+            extreme_values.append((timestamp, max_rsi, max_price_high))
         elif df_rsi['RSI'].iloc[i] <= 30:
             min_rsi = df_rsi['RSI'].iloc[i]
             min_price_low = df_ohlc['low'].iloc[i]
+            timestamp = df_ohlc['timestamp'].iloc[i]
             while i < len(df_rsi) and df_rsi['RSI'].iloc[i] <= 30:
-                min_rsi = min(min_rsi, df_rsi['RSI'].iloc[i])
-                min_price_low = min(min_price_low, df_ohlc['low'].iloc[i])
+                if df_rsi['RSI'].iloc[i] < min_rsi:
+                    min_rsi = df_rsi['RSI'].iloc[i]
+                    min_price_low = df_ohlc['low'].iloc[i]
+                    timestamp = df_ohlc['timestamp'].iloc[i]
                 i += 1
-            extreme_values.append((min_rsi, min_price_low))
+            extreme_values.append((timestamp, min_rsi, min_price_low))
         else:
             i += 1
     return extreme_values
+
+def store_extreme_values(conn, table_name, extreme_values):
+    df = pd.DataFrame(extreme_values, columns=['timestamp', 'RSI', 'Price'])
+    df.to_sql(table_name + '_extreme_values', conn, if_exists='replace', index=False)
+
 
 def main():
     conn = create_connection()

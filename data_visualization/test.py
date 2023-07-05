@@ -52,7 +52,11 @@ def main():
             df_ohlc = fetch_data(conn, table_name_ohlc)
             df_rsi = fetch_data(conn, table_name_rsi)
             df_extreme_values = fetch_data(conn, table_name_extreme_values)
-            plot_data(df_ohlc, df_rsi, df_extreme_values)
+            #
+            df = pd.read_sql_query("SELECT * FROM XBTUSD_1m_extreme_values LIMIT 5", conn)
+            print(df)
+            #
+            #plot_data(df_ohlc, df_rsi, df_extreme_values)
 
 if __name__ == '__main__':
     main()
