@@ -15,6 +15,7 @@ def fetch_data(conn, table_name):
     df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
     return df
 
+
 def find_extreme_values(df_ohlc, df_rsi):
     extreme_values = []
     i = 0

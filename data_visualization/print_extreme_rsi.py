@@ -17,7 +17,7 @@ def fetch_data(conn, table_name):
 
 def print_extreme_values(df):
     for index, row in df.iterrows():
-        print(f"RSI: {row['RSI']}, Price: {row['Price']}")
+        print(f"Timestamp: {row['timestamp']}, RSI: {row['RSI']}, Price: {row['Price']}")
 
 def main():
     conn = create_connection()

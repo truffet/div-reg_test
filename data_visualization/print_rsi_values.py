@@ -12,7 +12,6 @@ def create_connection():
 
 def fetch_data(conn, table_name):
     df = pd.read_sql_query(f"SELECT timestamp, RSI FROM {table_name}", conn)
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
     return df
 
 def main():
