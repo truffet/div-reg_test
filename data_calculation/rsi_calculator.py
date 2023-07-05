@@ -28,7 +28,7 @@ def calculate_rsi(df, period=14):
 
 def store_rsi(conn, table_name, rsi):
     rsi_df = pd.DataFrame({'timestamp': rsi.index, 'RSI': rsi.values})
-    rsi_df.to_sql(table_name + '_rsi', conn, if_exists='replace', index=True)
+    rsi_df.to_sql(table_name + '_rsi', conn, if_exists='replace', index=False)
 
 def main():
     conn = create_connection()

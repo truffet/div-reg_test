@@ -11,7 +11,8 @@ def create_connection():
     return conn
 
 def fetch_data(conn, table_name):
-    df = pd.read_sql_query(f"SELECT timestamp, RSI FROM {table_name}", conn)
+    df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
+    df.set_index('timestamp', inplace=True)
     return df
 
 def main():
