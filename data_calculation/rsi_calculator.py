@@ -24,11 +24,11 @@ def calculate_rsi(df, period=14):
     avg_loss = losses.rolling(window=period).mean()
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
-    return rsi
+    rsi_df = pd.DataFrame({'timestamp': df['timestamp'], 'RSI': rsi})
+    return rsi_df
 
 def store_rsi(conn, table_name, rsi):
-    rsi_df = pd.DataFrame({'timestamp': rsi.index, 'RSI': rsi.values})
-    rsi_df.to_sql(table_name + '_rsi', conn, if_exists='replace', index=False)
+    rsi.to_sql(table_name + '_rsi', conn, if_exists='replace', index=False)
 
 def main():
     conn = create_connection()
