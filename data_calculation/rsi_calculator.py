@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+import numpy as np
 
 # Database connection setup
 def create_connection():
@@ -16,15 +17,20 @@ def fetch_data(conn, table_name):
     return df
 
 def calculate_rsi(df, period=14):
-    close_prices = df['close']
-    changes = close_prices.diff()
-    gains = changes.where(changes > 0, 0)
-    losses = -changes.where(changes < 0, 0)
-    avg_gain = gains.rolling(window=period).mean()
-    avg_loss = losses.rolling(window=period).mean()
-    rs = avg_gain / avg_loss
-    rsi = 100 - (100 / (1 + rs))
+    delta = df['close'].diff()
+
+    up = delta.copy()
+    up[up < 0] = 0
+    up = pd.Series.ewm(up, alpha=1/period).mean()
+
+    down = delta.copy()
+    down[down > 0] = 0
+    down *= -1
+    down = pd.Series.ewm(down, alpha=1/period).mean()
+
+    rsi = np.where(up == 0, 0, np.where(down == 0, 100, 100 - (100 / (1 + up / down))))
     rsi_df = pd.DataFrame({'timestamp': df['timestamp'], 'RSI': rsi})
+
     return rsi_df
 
 def store_rsi(conn, table_name, rsi):

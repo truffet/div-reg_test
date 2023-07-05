@@ -20,29 +20,29 @@ def drop_tables(conn):
     # Drop each table
     for table_name in tables:
         table_name = table_name[0]
-        # Uncomment the tables you want to keep
+        # # Uncomment the tables you want to keep
         if table_name == 'XBTUSD_1m':
             continue
         if table_name == 'XBTUSD_5m':
             continue
         if table_name == 'XBTUSD_1h':
             continue
-        # if table_name == 'XBTUSD_1d':
+        if table_name == 'XBTUSD_1d':
+            continue
+        # if table_name == 'XBTUSD_1m_rsi':
         #     continue
-        if table_name == 'XBTUSD_1m_rsi':
-            continue
-        if table_name == 'XBTUSD_5m_rsi':
-            continue
-        if table_name == 'XBTUSD_1h_rsi':
-            continue
+        # if table_name == 'XBTUSD_5m_rsi':
+        #     continue
+        # if table_name == 'XBTUSD_1h_rsi':
+        #     continue
         # if table_name == 'XBTUSD_1d_rsi':
         #     continue
-        if table_name == 'XBTUSD_1m_extreme_values':
-            continue
-        if table_name == 'XBTUSD_5m_extreme_values':
-            continue
-        if table_name == 'XBTUSD_1h_extreme_values':
-            continue
+        # if table_name == 'XBTUSD_1m_extreme_values':
+        #     continue
+        # if table_name == 'XBTUSD_5m_extreme_values':
+        #     continue
+        # if table_name == 'XBTUSD_1h_extreme_values':
+        #     continue
         # if table_name == 'XBTUSD_1d_extreme_values':
         #     continue
         cursor.execute(f"DROP TABLE IF EXISTS {table_name};")
