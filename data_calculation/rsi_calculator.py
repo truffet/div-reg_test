@@ -16,6 +16,11 @@ def fetch_data(conn, table_name):
     df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
     return df
 
+def rma(x, n, y0):
+    a = (n-1) / n
+    ak = a**np.arange(len(x)-1, -1, -1)
+    return np.append(y0, np.cumsum(ak * x) / ak / n + y0 * a**np.arange(1, len(x)+1))
+
 def calculate_rsi(df, period=14):
     delta = df['close'].diff()
 
@@ -25,15 +30,12 @@ def calculate_rsi(df, period=14):
     loss[loss > 0] = 0
     loss = loss.abs()
 
-    avg_gain = gain.rolling(window=period).mean()
-    avg_loss = loss.rolling(window=period).mean()
-
-    for i in range(period, len(df)):
-        avg_gain[i] = (avg_gain[i-1] * (period - 1) + gain[i]) / period
-        avg_loss[i] = (avg_loss[i-1] * (period - 1) + loss[i]) / period
+    avg_gain = rma(gain[1:].values, period, gain[0])
+    avg_loss = rma(loss[1:].values, period, loss[0])
 
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
+    rsi = np.append([None]*period, rsi)  # Add None for the first 'period' number of elements
     rsi_df = pd.DataFrame({'timestamp': df['timestamp'], 'RSI': rsi})
 
     return rsi_df
