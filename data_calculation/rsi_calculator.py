@@ -21,15 +21,21 @@ def calculate_rsi(df, period=14):
 
     up = delta.copy()
     up[up < 0] = 0
-    up = pd.Series.ewm(up, alpha=1/period).mean()
-
     down = delta.copy()
     down[down > 0] = 0
-    down *= -1
-    down = pd.Series.ewm(down, alpha=1/period).mean()
+    down = down.abs()
 
-    rsi = np.where(up == 0, 0, np.where(down == 0, 100, 100 - (100 / (1 + up / down))))
-    rsi_df = pd.DataFrame({'timestamp': df['timestamp'], 'RSI': rsi})
+    avg_gain = up.rolling(window=period).mean().dropna()
+    avg_loss = down.rolling(window=period).mean().dropna()
+
+    # Wilder's smoothing
+    for i in range(len(avg_gain) + 1, len(up)):
+        avg_gain.loc[i] = (avg_gain.loc[i - 1] * (period - 1) + up.loc[i]) / period
+        avg_loss.loc[i] = (avg_loss.loc[i - 1] * (period - 1) + down.loc[i]) / period
+
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    rsi_df = pd.DataFrame({'timestamp': df['timestamp'][period:], 'RSI': rsi})
 
     return rsi_df
 
