@@ -19,23 +19,22 @@ def fetch_data(conn, table_name):
 def calculate_rsi(df, period=14):
     delta = df['close'].diff()
 
-    up = delta.copy()
-    up[up < 0] = 0
-    down = delta.copy()
-    down[down > 0] = 0
-    down = down.abs()
+    gain = delta.copy()
+    gain[gain < 0] = 0
+    loss = delta.copy()
+    loss[loss > 0] = 0
+    loss = loss.abs()
 
-    avg_gain = up.rolling(window=period).mean().dropna()
-    avg_loss = down.rolling(window=period).mean().dropna()
+    avg_gain = gain.rolling(window=period).mean()
+    avg_loss = loss.rolling(window=period).mean()
 
-    # Wilder's smoothing
-    for i in range(len(avg_gain) + 1, len(up)):
-        avg_gain.loc[i] = (avg_gain.loc[i - 1] * (period - 1) + up.loc[i]) / period
-        avg_loss.loc[i] = (avg_loss.loc[i - 1] * (period - 1) + down.loc[i]) / period
+    for i in range(period, len(df)):
+        avg_gain[i] = (avg_gain[i-1] * (period - 1) + gain[i]) / period
+        avg_loss[i] = (avg_loss[i-1] * (period - 1) + loss[i]) / period
 
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
-    rsi_df = pd.DataFrame({'timestamp': df['timestamp'][period:], 'RSI': rsi})
+    rsi_df = pd.DataFrame({'timestamp': df['timestamp'], 'RSI': rsi})
 
     return rsi_df
 

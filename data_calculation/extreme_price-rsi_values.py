@@ -20,30 +20,30 @@ def find_extreme_values(df_ohlc, df_rsi):
     extreme_values = []
     i = 0
     while i < len(df_rsi):
-        if df_rsi['RSI'].iloc[i] >= 70:
-            max_rsi = df_rsi['RSI'].iloc[i]
-            max_price_high = df_ohlc['high'].iloc[i]
-            timestamp = df_ohlc['timestamp'].iloc[i]
-            while i < len(df_rsi) and df_rsi['RSI'].iloc[i] >= 70:
-                if df_rsi['RSI'].iloc[i] > max_rsi:
-                    max_rsi = df_rsi['RSI'].iloc[i]
-                    max_price_high = df_ohlc['high'].iloc[i]
-                    timestamp = df_ohlc['timestamp'].iloc[i]
-                i += 1
-            extreme_values.append((timestamp, max_rsi, max_price_high))
-        elif df_rsi['RSI'].iloc[i] <= 30:
-            min_rsi = df_rsi['RSI'].iloc[i]
-            min_price_low = df_ohlc['low'].iloc[i]
-            timestamp = df_ohlc['timestamp'].iloc[i]
-            while i < len(df_rsi) and df_rsi['RSI'].iloc[i] <= 30:
-                if df_rsi['RSI'].iloc[i] < min_rsi:
-                    min_rsi = df_rsi['RSI'].iloc[i]
-                    min_price_low = df_ohlc['low'].iloc[i]
-                    timestamp = df_ohlc['timestamp'].iloc[i]
-                i += 1
-            extreme_values.append((timestamp, min_rsi, min_price_low))
-        else:
-            i += 1
+        if df_rsi['RSI'].iloc[i] is not None:
+            if df_rsi['RSI'].iloc[i] >= 70:
+                max_rsi = df_rsi['RSI'].iloc[i]
+                max_price_high = df_ohlc['high'].iloc[i]
+                timestamp = df_ohlc['timestamp'].iloc[i]
+                while i < len(df_rsi) and df_rsi['RSI'].iloc[i] is not None and df_rsi['RSI'].iloc[i] >= 70:
+                    if df_rsi['RSI'].iloc[i] > max_rsi:
+                        max_rsi = df_rsi['RSI'].iloc[i]
+                        max_price_high = df_ohlc['high'].iloc[i]
+                        timestamp = df_ohlc['timestamp'].iloc[i]
+                    i += 1
+                extreme_values.append((timestamp, max_rsi, max_price_high))
+            elif df_rsi['RSI'].iloc[i] <= 30:
+                min_rsi = df_rsi['RSI'].iloc[i]
+                min_price_low = df_ohlc['low'].iloc[i]
+                timestamp = df_ohlc['timestamp'].iloc[i]
+                while i < len(df_rsi) and df_rsi['RSI'].iloc[i] is not None and df_rsi['RSI'].iloc[i] <= 30:
+                    if df_rsi['RSI'].iloc[i] < min_rsi:
+                        min_rsi = df_rsi['RSI'].iloc[i]
+                        min_price_low = df_ohlc['low'].iloc[i]
+                        timestamp = df_ohlc['timestamp'].iloc[i]
+                    i += 1
+                extreme_values.append((timestamp, min_rsi, min_price_low))
+        i += 1
     return extreme_values
 
 def store_extreme_values(conn, table_name, extreme_values):
