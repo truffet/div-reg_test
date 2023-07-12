@@ -17,9 +17,9 @@ def fetch_data(conn, table_name):
     return df
 
 def rma(x, n, y0):
-    a = (n-1) / n
+    a = (n - 1) / n
     ak = a**np.arange(len(x)-1, -1, -1)
-    return np.append(y0, np.cumsum(ak * x) / ak / n + y0 * a**np.arange(1, len(x)+1))
+    return np.r_[np.full(n, np.nan), y0, np.cumsum(ak[::-1] * x) - ak * np.cumsum(x)[::-1] * y0][n:]
 
 def calculate_rsi(df, period=14):
     delta = df['close'].diff()
@@ -30,12 +30,13 @@ def calculate_rsi(df, period=14):
     loss[loss > 0] = 0
     loss = loss.abs()
 
-    avg_gain = rma(gain[1:].values, period, gain[0])
-    avg_loss = rma(loss[1:].values, period, loss[0])
+    avg_gain = rma(gain.values, period, gain[0])
+    avg_loss = rma(loss.values, period, loss[0])
 
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
-    rsi = np.append([None]*period, rsi)  # Add None for the first 'period' number of elements
+    rsi = np.append([np.nan]*period, rsi[period:])  # Adjust the length of rsi to match with the length of df
+
     rsi_df = pd.DataFrame({'timestamp': df['timestamp'], 'RSI': rsi})
 
     return rsi_df
